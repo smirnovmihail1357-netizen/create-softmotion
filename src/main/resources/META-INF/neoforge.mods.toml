@@ -1,0 +1,37 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="softmotion"
+version="1.0.0"
+displayName="Create: SoftMotion"
+authors="WarDreg"
+description="""Accessibility addon for Create designed for players with visual hypersensitivity.
+
+SoftMotion reduces the visual rotation speed of Create machinery and contraptions without affecting gameplay, stress calculations, RPM, or kinetic networks.
+"""
+
+[[dependencies.softmotion]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.230,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.softmotion]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1,1.21.2)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.softmotion]]
+modId="create"
+type="required"
+versionRange="[6.0.10,)"
+ordering="AFTER"
+side="CLIENT"
+
+[[mixins]]
+config="softmotion.mixins.json"
