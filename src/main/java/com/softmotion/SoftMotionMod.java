@@ -20,7 +20,7 @@ public class SoftMotionMod {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void registerNativeConfigScreen(ModContainer modContainer) {
         try {
             Class<?> factoryClass = Class.forName("net.neoforged.neoforge.client.gui.IConfigScreenFactory");
@@ -35,7 +35,7 @@ public class SoftMotionMod {
                         }
                         return null;
                     });
-            modContainer.registerExtensionPoint((Class<Object>) factoryClass, () -> factory);
+            modContainer.registerExtensionPoint((Class) factoryClass, (java.util.function.Supplier) () -> factory);
         } catch (Throwable ignored) {
             // Configuration screen is unavailable; the mod still works with the TOML config file.
         }

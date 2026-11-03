@@ -24,6 +24,15 @@ Client-side accessibility addon for [Create](https://modrinth.com/mod/create-1-2
 Requires JDK 21+ (Gradle provisions a toolchain automatically) and internet access on the first build
 (downloads NeoForge userdev assets).
 
+First, fetch the Create dev jars into the local mirror `libs-maven/`:
+
+```bash
+./fetch-libs.sh
+```
+
+(The jars are taken from the Modrinth CDN because `maven.createmod.net` currently serves an expired
+TLS certificate; they are the same official Create 6.0.10 release files, including flywheel.)
+
 ```bash
 ./gradlew build      # jar: build/libs/Create-SoftMotion-1.0.0.jar
 ./gradlew runClient  # dev client with Create 6.0.10 preinstalled

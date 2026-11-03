@@ -29,20 +29,25 @@ neoForge {
 }
 
 repositories {
+    // Local mirror of Modrinth-hosted jars (Modrinth maven coordinates), used because
+    // maven.createmod.net currently serves an expired TLS certificate (Let's Encrypt YR1).
+    // Fetch with: ./fetch-libs.sh
+    maven { url = uri(layout.projectDirectory.dir('libs-maven')) }
     maven { url = 'https://maven.createmod.net' } // Create, Ponder, Flywheel
     maven { url = 'https://maven.ithundxr.dev/snapshots' } // Registrate
     maven { url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/' } // ponder config api
 }
 
 dependencies {
-    // Create for dev environment (see https://wiki.createmod.net/developers/depend-on-create/neoforge-1.21.1)
-    implementation('com.simibubi.create:create-1.21.1:6.0.10-280:slim') {
+    // Create 6.0.10 for mc1.21.1 (Modrinth release; bundles flywheel/ponder/Registrate
+    // in META-INF/jarjar, so they load in the dev client without extra dependencies).
+    implementation('com.simibubi.create:create-1.21.1:6.0.10') {
         transitive = false
     }
-    implementation 'net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1'
-    implementation 'com.tterrag.registrate:Registrate:MC1.21-1.3.0+67'
-    compileOnly 'dev.engine-room.flywheel:flywheel-neoforge-api-1.21.1:1.0.6'
-    runtimeOnly 'dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.6'
+    // RotatingInstance extends flywheel lib classes -> needed on the compile classpath.
+    compileOnly('dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.6') {
+        transitive = false
+    }
 }
 
 jar {
