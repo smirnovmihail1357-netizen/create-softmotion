@@ -21,13 +21,26 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 
-    // create-fabric bundles the rest of its dependencies (flywheel, ponder, registrate,
-    // porting_lib, forgeconfigapiport, milk, reach) inside META-INF/jars, so the dev
-    // runtime needs nothing beyond fabric-api.
-    modImplementation "maven.modrinth:create-fabric:${rootProject.create_fabric_version}"
+    // Local copy of create-fabric with its JiJ stripped: loom's remap of the raw
+    // maven artifact no-ops on nested jars, leaving intermediary names in the dev
+    // runtime. The extracted JiJ jars below are added explicitly instead.
+    modImplementation files(rootProject.file('libs-maven/create-fabric-dev.jar'))
 
+    // create-fabric bundles the rest of its dependencies (flywheel, ponder, registrate,
+    // porting_lib, forgeconfigapiport, milk, reach) inside META-INF/jars. Fabric Loader
+    // does not pick up nested jars from a dev classpath, so ./fetch-libs.sh (run once)
+    // extracts them into libs-maven/fabric-jij and we add them explicitly.
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowCommon(project(path: ':common', configuration: 'transformProductionFabric')) { transitive = false }
+
+    rootProject.file('libs-maven/fabric-jij').listFiles()?.findAll { it.name.endsWith('.jar') }?.each { File jar ->
+        boolean library = jar.name.startsWith('core-') || jar.name.startsWith('jsr305') || jar.name.startsWith('toml-')
+        if (library) {
+            runtimeOnly files(jar)
+        } else {
+            modRuntimeOnly files(jar)
+        }
+    }
 }
 
 processResources {
