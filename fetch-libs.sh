@@ -20,6 +20,6 @@ unzip -p "$CREATE_DIR/create-1.21.1-6.0.10.jar" META-INF/jarjar/flywheel-neoforg
 pom() { # groupId artifactId version -> pom to stdout
     printf '<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>%s</groupId>\n  <artifactId>%s</artifactId>\n  <version>%s</version>\n  <packaging>jar</packaging>\n</project>\n' "$1" "$2" "$3"
 }
-pom com.simibubi create-1.21.1 6.0.10 > "$CREATE_DIR/create-1.21.1-6.0.10.pom"
+pom com.simibubi.create create-1.21.1 6.0.10 > "$CREATE_DIR/create-1.21.1-6.0.10.pom"
 pom dev.engine-room.flywheel flywheel-neoforge-1.21.1 1.0.6 > "$FW_DIR/flywheel-neoforge-1.21.1-1.0.6.pom"
 echo "libs-maven ready."
