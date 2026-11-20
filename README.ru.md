@@ -3,12 +3,12 @@
 **[English](README.md)** | **Русский**
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-createsoftmotion-blue)](https://modrinth.com/mod/createsoftmotion)
-![MC](https://img.shields.io/badge/Minecraft-1.20.1-green) ![loader](https://img.shields.io/badge/Forge%2047.1%2B%20%7C%20NeoForge%2020.1%20%7C%20Fabric%200.17%2B-orange)
+![MC](https://img.shields.io/badge/Minecraft-1.18.2-green) ![loader](https://img.shields.io/badge/Forge%2040.2%2B%20%7C%20Fabric%200.15%2B-orange)
 
 Клиентский аддон доступности для [Create](https://modrinth.com/mod/create): замедляет **визуальное**
 вращение механизмов и конструкций Create для игроков со зрительной гиперчувствительностью.
 
-- Замедляется только отрисовка вращения: валы и прочие вращающиеся инстансы (`RotatingInstance`),
+- Замедляется только отрисовка вращения: рендер-инстансы Flywheel (`KineticData.setRotationalSpeed`),
   Mechanical Bearing (`getInterpolatedAngle`) и сущности конструкций на вращателе (`setAngle`).
 - **Не меняет** кинетику Create: RPM, нагрузку (stress), кинетические сети, поведение конструкций,
   скорость обработки предметов и вообще игровую логику — меняется только картинка.
@@ -58,20 +58,22 @@ visualSpeedFormula = "if(rpm > 100, 0.1, 0.5)"          # два диапазо�
 
 ## Сборка
 
-Ветка нацелена на Minecraft 1.20.1 и собирается мульти-модульным туслчейном
+Ветка нацелена на Minecraft 1.18.2 и собирается мульти-модульным туслчейном
 [Architectury](https://modrinth.com/mod/architectury-api) (`architectury-plugin` + `dev.architectury.loom`):
-`common` (миксины, математика, фасад конфига), `forge` (Forge 47.1+; тот же джарник работает на NeoForge
-20.1 — так же, как сам Create для 1.20.1) и `fabric` (Fabric Loader 0.17+).
+`common` (миксины, математика, фасад конфига), `forge` (Forge 40.2.10+) и `fabric` (Fabric Loader 0.15+).
 
 Для запуска Gradle нужен JDK 17–21 (wrapper — Gradle 8.12, он не принимает более новые JVM) и доступ в
-интернет при первой сборке (loom, ассеты Forge userdev, dev-артефакты Create с `maven.createmod.net`).
+интернет при первой сборке (loom, ассеты Forge userdev, джарники Create 0.5.1.i с maven Modrinth —
+на `maven.createmod.net` для MC 1.18/1.19 ничего нет). Джарники flywheel и Registrate лежат в репозитории
+в `libs-maven/`, потому что они поставляются только вложенными внутрь джарника Create; каталог
+перегенерирует скрипт `fetch-libs.sh`.
 
 ```bash
 ./gradlew build
-# forge:  forge/build/libs/create-softmotion-forge-1.1.1+1.20.1.jar      (forge + neoforge)
-# fabric: fabric/build/libs/create-softmotion-fabric-1.1.1+1.20.1.jar    (fabric + quilt)
-./gradlew :forge:runClient   # dev-клиент с Create 6.0.8
-./gradlew :fabric:runClient  # dev-клиент с create-fabric 6.0.8.1
+# forge:  forge/build/libs/create-softmotion-forge-1.1.1+1.18.2.jar
+# fabric: fabric/build/libs/create-softmotion-fabric-1.1.1+1.18.2.jar
+./gradlew :forge:runClient   # dev-клиент с Create 0.5.1.i
+./gradlew :fabric:runClient  # dev-клиент с create-fabric 0.5.1-i-build.1629
 ```
 
 Ветка main — NeoForge-сборка для 1.21.1; остальные версии Minecraft живут в отдельных ветках
@@ -81,10 +83,14 @@ visualSpeedFormula = "if(rpm > 100, 0.1, 0.5)"          # два диапазо�
 
 | | |
 |---|---|
-| Minecraft | 1.20.1 |
-| Лоадер | Forge 47.1.3+ (тот же джарник работает на NeoForge 20.1), Fabric Loader 0.14+ / quilt |
-| Create | 6.0.7+ на Forge/NeoForge, create-fabric 6.0.7+ на Fabric (обязателен, клиентская сторона) |
+| Minecraft | 1.18.2 |
+| Лоадер | Forge 40.2.4+, Fabric Loader 0.14+ |
+| Create | 0.5.1.i на Forge, create-fabric 0.5.1-i-build.1629 на Fabric (обязателен, клиентская сторона) |
 | Сторона | только клиент (`client_side: required`, `server_side: unsupported`) |
+
+Замечание: порт create-fabric для этой версии Minecraft находится в статусе BETA (сборка 1629);
+Fabric-сборка SoftMotion нацелена именно на эту бета-линию. Forge-сборка нацелена на стабильный
+Create 0.5.1.i.
 
 Все инъекции идут с `require = 0`, а в конфиге миксинов стоит `defaultRequire = 0`: если будущая сборка
 Create переименует цель, мод не упадёт при запуске — просто эта инъекция не применится. Совместимость с
@@ -94,8 +100,9 @@ Create переименует цель, мод не упадёт при запу
 
 `visualSpeedMultiplier` (или результат формулы) применяется только к визуальному углу / скорости вращения:
 
-- `RotatingInstance.setRotationalSpeed` — масштабируется скорость рендер-инстанса Flywheel для валов,
-  шестерней и прочих кинетических блоков, а block entity сохраняет реальные обороты;
+- `KineticData.setRotationalSpeed` — единая точка, через которую каждый рендер-инстанс Flywheel в
+  Create 0.5.1 (валы, шестерни, конвейеры, миксеры) получает скорость отрисовки; масштабируется именно
+  она, а block entity сохраняет реальные обороты;
 - `MechanicalBearingBlockEntity.getInterpolatedAngle` — возвращаемый угол заменяется локально
   просчитанным *визуальным* углом, который следует за реальным в заданном отношении (интегрирование по
   кратчайшей разнице, поэтому переход через 360° не даёт скачка);

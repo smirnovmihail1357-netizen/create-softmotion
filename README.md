@@ -3,12 +3,12 @@
 **English** | **[Русский](README.ru.md)**
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-createsoftmotion-blue)](https://modrinth.com/mod/createsoftmotion)
-![MC](https://img.shields.io/badge/Minecraft-1.20.1-green) ![loader](https://img.shields.io/badge/Forge%2047.1%2B%20%7C%20NeoForge%2020.1%20%7C%20Fabric%200.17%2B-orange)
+![MC](https://img.shields.io/badge/Minecraft-1.18.2-green) ![loader](https://img.shields.io/badge/Forge%2040.2%2B%20%7C%20Fabric%200.15%2B-orange)
 
 Client-side accessibility addon for [Create](https://modrinth.com/mod/create) that slows down the
 **visual** rotation of Create machinery and contraptions, for players with visual hypersensitivity.
 
-- Slows only the rendering of rotation: shafts and other rotating instances (`RotatingInstance`),
+- Slows only the rendering of rotation: flywheel render instances (`KineticData.setRotationalSpeed`),
   Mechanical Bearings (`getInterpolatedAngle`) and bearing-mounted contraption entities (`setAngle`).
 - Does **not** change Create kinetics: RPM, stress, kinetic networks, contraption behaviour, processing
   speed or any gameplay logic — only the picture.
@@ -57,21 +57,22 @@ The formula is compiled once per config change, not on every frame.
 
 ## Build
 
-This branch targets Minecraft 1.20.1 with a multi-module [Architectury](https://modrinth.com/mod/architectury-api)
+This branch targets Minecraft 1.18.2 with a multi-module [Architectury](https://modrinth.com/mod/architectury-api)
 toolchain (`architectury-plugin` + `dev.architectury.loom`): `common` (mixins + math + config facade),
-`forge` (Forge 47.1+, the same jar runs on NeoForge 20.1 — exactly like Create's own 1.20.1 build) and
-`fabric` (Fabric Loader 0.17+).
+`forge` (Forge 40.2.10+) and `fabric` (Fabric Loader 0.15+).
 
 Requires a JDK 17–21 for the Gradle launcher (the wrapper is Gradle 8.12, which refuses newer launchers)
-and internet access on the first build (downloads loom + Forge userdev assets + Create dev artifacts from
-`maven.createmod.net`).
+and internet access on the first build (downloads loom + Forge userdev assets + the Create 0.5.1.i jars
+from the Modrinth maven; `maven.createmod.net` hosts nothing for MC 1.18/1.19). The flywheel and
+Registrate jars are committed under `libs-maven/` because they only ship nested inside the Create jars
+— `fetch-libs.sh` regenerates that directory.
 
 ```bash
 ./gradlew build
-# forge artifact:  forge/build/libs/create-softmotion-forge-1.1.1+1.20.1.jar      (forge + neoforge)
-# fabric artifact: fabric/build/libs/create-softmotion-fabric-1.1.1+1.20.1.jar    (fabric + quilt)
-./gradlew :forge:runClient   # dev client with Create 6.0.8 preinstalled
-./gradlew :fabric:runClient  # dev client with create-fabric 6.0.8.1 preinstalled
+# forge artifact:  forge/build/libs/create-softmotion-forge-1.1.1+1.18.2.jar
+# fabric artifact: fabric/build/libs/create-softmotion-fabric-1.1.1+1.18.2.jar
+./gradlew :forge:runClient   # dev client with Create 0.5.1.i preinstalled
+./gradlew :fabric:runClient  # dev client with create-fabric 0.5.1-i-build.1629 preinstalled
 ```
 
 The main branch holds the NeoForge 1.21.1 build; other Minecraft versions live in per-version branches
@@ -81,10 +82,13 @@ The main branch holds the NeoForge 1.21.1 build; other Minecraft versions live i
 
 | | |
 |---|---|
-| Minecraft | 1.20.1 |
-| Loader | Forge 47.1.3+ (the same jar runs on NeoForge 20.1), Fabric Loader 0.14+ / quilt |
-| Create | 6.0.7+ on Forge/NeoForge, create-fabric 6.0.7+ on Fabric (required, client side) |
+| Minecraft | 1.18.2 |
+| Loader | Forge 40.2.4+, Fabric Loader 0.14+ |
+| Create | 0.5.1.i on Forge, create-fabric 0.5.1-i-build.1629 on Fabric (required, client side) |
 | Side | client only (`client_side: required`, `server_side: unsupported`) |
+
+Note: the create-fabric port for this Minecraft version is BETA (build 1629); the Fabric build of
+SoftMotion targets that beta line. The Forge build targets the stable Create 0.5.1.i release.
 
 All injections are `require = 0` and the mixin config sets `defaultRequire = 0`, so if a future Create
 build renames a target the mod will not crash on startup — that injection simply will not apply.
@@ -94,8 +98,9 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 `visualSpeedMultiplier` (or the formula's result) is applied to the visual angle/rotational speed only:
 
-- `RotatingInstance.setRotationalSpeed` — the Flywheel render instance for shafts, cogwheels and other
-  kinetic blocks gets a scaled speed, while the block entity keeps its real RPM;
+- `KineticData.setRotationalSpeed` — the single choke point every Create 0.5.1 flywheel render instance
+  (shafts, cogwheels, belts, gearboxes, mixers) funnels its rendered rotational speed through, gets a
+  scaled speed, while the block entity keeps its real RPM;
 - `MechanicalBearingBlockEntity.getInterpolatedAngle` — the returned angle is replaced by a locally
   integrated *visual* angle that follows the real angle at the configured ratio (shortest-delta
   integration, so wrapping never produces a jump);

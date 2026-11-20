@@ -14,10 +14,22 @@ loom {
         mixinConfig 'softmotion.mixins.json'
     }
     runs.configureEach {
-        // Create ships its mixin config through jar metadata for production; the
-        // architectury-loom forge dev runtime needs it spelled out explicitly.
+        // Create and flywheel 0.5.1 ship their mixin configs through jar manifests
+        // for production; the architectury-loom forge dev runtime needs them spelled
+        // out explicitly.
         programArg '-mixin.config=create.mixins.json'
+        programArg '-mixin.config=flywheel.mixins.json'
     }
+}
+
+tasks.withType(JavaExec).configureEach {
+    // The game process must run on Java 17: the mixin/ASM shipped with Forge 43
+    // cannot read newer JDK class files (ClassMetadataNotFound on java.lang.System
+    // when the game JVM is 21). loom 1.11 itself requires Gradle on 21, so the
+    // daemon JVM is deliberately left alone and only the game is pinned to 17.
+    javaLauncher.set(javaToolchains.launcherFor {
+        it.languageVersion = JavaLanguageVersion.of(17)
+    })
 }
 
 configurations {
@@ -34,17 +46,13 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowCommon(project(path: ':common', configuration: 'transformProductionForge')) { transitive = false }
 
-    // slim = the createmod maven build without the jarjar'd libraries; the rest of
-    // the Create stack is provided explicitly below (same wiring as other Create addons).
-    modImplementation("com.simibubi.create:create-${rootProject.minecraft_version}:${rootProject.create_forge_version}:slim") { transitive = false }
-    modImplementation "net.createmod.ponder:Ponder-Forge-${rootProject.minecraft_version}:${rootProject.ponder_version}"
-    modImplementation "com.tterrag.registrate:Registrate:${rootProject.registrate_version}"
-    modCompileOnly "dev.engine-room.flywheel:flywheel-forge-api-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
-    modRuntimeOnly "dev.engine-room.flywheel:flywheel-forge-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
-    // The slim Create artifact drops the jarjar'd mixinextras that Create's mixins need at
-    // runtime. Plain runtimeOnly (NOT modRuntimeOnly): its ModLauncher service must be
-    // visible on the classpath, not be discovered as a classpath mod.
-    runtimeOnly "io.github.llamalad7:mixinextras-forge:${rootProject.mixin_extras_version}"
+    // Create 0.5.1.i production jar (SRG) from the Modrinth maven; loom remaps
+    // it to named. Ponder is compiled into the jar; flywheel and Registrate are
+    // only nested (META-INF/jarjar), which the loom forge dev runtime does not
+    // unpack, so they are provided explicitly from libs-maven/ (fetch-libs.sh).
+    modImplementation "maven.modrinth:create:${rootProject.create_forge_version}"
+    modImplementation "libs.createmod:flywheel-forge-${rootProject.minecraft_version}:${rootProject.flywheel_forge_version}"
+    modRuntimeOnly "libs.createmod:Registrate-MC1.18.2:${rootProject.registrate_forge_version}"
 }
 
 processResources {

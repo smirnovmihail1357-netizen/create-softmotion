@@ -10,6 +10,8 @@ dependencies {
     // code and mixins compile against it and apply to both platforms.
     modCompileOnly "maven.modrinth:create-fabric:${rootProject.create_fabric_version}"
 
-    // RotatingInstance extends flywheel classes -> needed on the compile classpath.
-    modCompileOnly "dev.engine-room.flywheel:flywheel-fabric-1.20.1:${rootProject.flywheel_fabric_version}"
+    // KineticData extends flywheel's BasicData -> flywheel-fabric is needed on the
+    // compile classpath. create-fabric only ships it nested (JiJ), so it is
+    // extracted into libs-maven by fetch-libs.sh.
+    modCompileOnly "libs.createmod:flywheel-fabric-${rootProject.minecraft_version}:${rootProject.flywheel_fabric_version}"
 }
