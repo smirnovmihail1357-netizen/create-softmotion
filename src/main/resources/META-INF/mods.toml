@@ -1,10 +1,10 @@
 modLoader="javafml"
-loaderVersion="[4,)"
+loaderVersion="[36,)"
 license="MIT"
 
 [[mods]]
 modId="softmotion"
-version="1.1.1"
+version="1.1.1+1.16.5"
 displayName="Create: SoftMotion"
 authors="WarDreg"
 description="""Accessibility addon for Create designed for players with visual hypersensitivity.
@@ -13,25 +13,26 @@ SoftMotion reduces the visual rotation speed of Create machinery and contraption
 """
 
 [[dependencies.softmotion]]
-modId="neoforge"
-type="required"
-versionRange="[21.1.230,)"
+modId="forge"
+mandatory=true
+versionRange="[36,)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.softmotion]]
 modId="minecraft"
-type="required"
-versionRange="[1.21.1,1.21.2)"
+mandatory=true
+versionRange="[1.16.5,1.16.6)"
 ordering="NONE"
 side="BOTH"
 
+# Create for 1.16.5 = 0.3.2g, whose mods.toml declares version "v0.3.2g". The leading
+# "v" sorts BELOW "0.3.2" in Forge's version comparator (verified with the same
+# Maven ComparableVersion Forge 36 uses), so a "[0.3.2,)" range would never match
+# and the dependency would fail. "[0,)" matches "v0.3.2g" (verified empirically).
 [[dependencies.softmotion]]
 modId="create"
-type="required"
-versionRange="[6.0.10,)"
+mandatory=true
+versionRange="[0,)"
 ordering="AFTER"
 side="CLIENT"
-
-[[mixins]]
-config="softmotion.mixins.json"

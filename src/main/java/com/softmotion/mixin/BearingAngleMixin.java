@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(targets = "com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity", remap = false)
+@Mixin(targets = "com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity", remap = false)
 public abstract class BearingAngleMixin {
     private static final WeakHashMap<Object, VisualAngleState> SOFTMOTION$ANGLES = new WeakHashMap<>();
 

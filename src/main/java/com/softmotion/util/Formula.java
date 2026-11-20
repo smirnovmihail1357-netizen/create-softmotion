@@ -10,6 +10,8 @@ import java.util.Locale;
  * {@code ? :}, and functions abs/min/max/clamp/sqrt/sign/floor/ceil/round/pow/log/exp/
  * sin/cos/tan/if. Booleans are represented as 1.0 / 0.0. A compiled formula is immutable
  * and can be evaluated from several render threads at once.</p>
+ *
+ * <p>Written for Java 8: no records, no switch-expressions.</p>
  */
 public final class Formula {
     private final Node root;
@@ -19,7 +21,7 @@ public final class Formula {
     }
 
     public static Formula compile(String source) {
-        if (source == null || source.isBlank()) {
+        if (source == null || source.trim().isEmpty()) {
             throw new IllegalArgumentException("Formula is empty");
         }
         if (source.length() > 512) {
@@ -36,35 +38,69 @@ public final class Formula {
         double eval(double rpm, double speed);
     }
 
-    private record Const(double value) implements Node {
+    private static final class Const implements Node {
+        private final double value;
+
+        Const(double value) {
+            this.value = value;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             return value;
         }
     }
 
-    private record Var(int index) implements Node {
+    private static final class Var implements Node {
+        private final int index;
+
+        Var(int index) {
+            this.index = index;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             return index == 0 ? rpm : speed;
         }
     }
 
-    private record Neg(Node operand) implements Node {
+    private static final class Neg implements Node {
+        private final Node operand;
+
+        Neg(Node operand) {
+            this.operand = operand;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             return -operand.eval(rpm, speed);
         }
     }
 
-    private record Not(Node operand) implements Node {
+    private static final class Not implements Node {
+        private final Node operand;
+
+        Not(Node operand) {
+            this.operand = operand;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             return operand.eval(rpm, speed) == 0.0 ? 1.0 : 0.0;
         }
     }
 
-    private record Binary(char op, Node left, Node right) implements Node {
+    private static final class Binary implements Node {
+        private final char op;
+        private final Node left;
+        private final Node right;
+
+        Binary(char op, Node left, Node right) {
+            this.op = op;
+            this.left = left;
+            this.right = right;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             double a = left.eval(rpm, speed);
@@ -75,55 +111,116 @@ public final class Formula {
                 return a != 0.0 || right.eval(rpm, speed) != 0.0 ? 1.0 : 0.0;
             }
             double b = right.eval(rpm, speed);
-            return switch (op) {
-                case '+' -> a + b;
-                case '-' -> a - b;
-                case '*' -> a * b;
-                case '/' -> a / b;
-                case '%' -> a % b;
-                case '^' -> Math.pow(a, b);
-                case '<' -> a < b ? 1.0 : 0.0;
-                case '>' -> a > b ? 1.0 : 0.0;
-                case 'l' -> a <= b ? 1.0 : 0.0;
-                case 'g' -> a >= b ? 1.0 : 0.0;
-                case '=' -> a == b ? 1.0 : 0.0;
-                case 'n' -> a != b ? 1.0 : 0.0;
-                default -> throw new IllegalStateException("Unknown operator: " + op);
-            };
+            switch (op) {
+                case '+':
+                    return a + b;
+                case '-':
+                    return a - b;
+                case '*':
+                    return a * b;
+                case '/':
+                    return a / b;
+                case '%':
+                    return a % b;
+                case '^':
+                    return Math.pow(a, b);
+                case '<':
+                    return a < b ? 1.0 : 0.0;
+                case '>':
+                    return a > b ? 1.0 : 0.0;
+                case 'l':
+                    return a <= b ? 1.0 : 0.0;
+                case 'g':
+                    return a >= b ? 1.0 : 0.0;
+                case '=':
+                    return a == b ? 1.0 : 0.0;
+                case 'n':
+                    return a != b ? 1.0 : 0.0;
+                default:
+                    throw new IllegalStateException("Unknown operator: " + op);
+            }
         }
     }
 
-    private record Ternary(Node condition, Node whenTrue, Node whenFalse) implements Node {
+    private static final class Ternary implements Node {
+        private final Node condition;
+        private final Node whenTrue;
+        private final Node whenFalse;
+
+        Ternary(Node condition, Node whenTrue, Node whenFalse) {
+            this.condition = condition;
+            this.whenTrue = whenTrue;
+            this.whenFalse = whenFalse;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             return condition.eval(rpm, speed) != 0.0 ? whenTrue.eval(rpm, speed) : whenFalse.eval(rpm, speed);
         }
     }
 
-    private record Call(String name, Node[] args) implements Node {
+    private static final class Call implements Node {
+        private final String name;
+        private final Node[] args;
+
+        Call(String name, Node[] args) {
+            this.name = name;
+            this.args = args;
+        }
+
         @Override
         public double eval(double rpm, double speed) {
             // Evaluated once per element per frame, so avoid allocating per call.
             double a = args[0].eval(rpm, speed);
-            return switch (name) {
-                case "abs" -> Math.abs(a);
-                case "min" -> min(a, rpm, speed);
-                case "max" -> max(a, rpm, speed);
-                case "clamp" -> Math.max(args[1].eval(rpm, speed), Math.min(args[2].eval(rpm, speed), a));
-                case "sqrt" -> Math.sqrt(a);
-                case "sign" -> Math.signum(a);
-                case "floor" -> Math.floor(a);
-                case "ceil" -> Math.ceil(a);
-                case "round" -> Math.round(a);
-                case "pow" -> Math.pow(a, args[1].eval(rpm, speed));
-                case "log" -> Math.log(a);
-                case "exp" -> Math.exp(a);
-                case "sin" -> Math.sin(a);
-                case "cos" -> Math.cos(a);
-                case "tan" -> Math.tan(a);
-                case "if" -> a != 0.0 ? args[1].eval(rpm, speed) : args[2].eval(rpm, speed);
-                default -> throw new IllegalStateException("Unknown function: " + name);
-            };
+            if ("abs".equals(name)) {
+                return Math.abs(a);
+            }
+            if ("min".equals(name)) {
+                return min(a, rpm, speed);
+            }
+            if ("max".equals(name)) {
+                return max(a, rpm, speed);
+            }
+            if ("clamp".equals(name)) {
+                return Math.max(args[1].eval(rpm, speed), Math.min(args[2].eval(rpm, speed), a));
+            }
+            if ("sqrt".equals(name)) {
+                return Math.sqrt(a);
+            }
+            if ("sign".equals(name)) {
+                return Math.signum(a);
+            }
+            if ("floor".equals(name)) {
+                return Math.floor(a);
+            }
+            if ("ceil".equals(name)) {
+                return Math.ceil(a);
+            }
+            if ("round".equals(name)) {
+                return Math.round(a);
+            }
+            if ("pow".equals(name)) {
+                return Math.pow(a, args[1].eval(rpm, speed));
+            }
+            if ("log".equals(name)) {
+                return Math.log(a);
+            }
+            if ("exp".equals(name)) {
+                return Math.exp(a);
+            }
+            if ("sin".equals(name)) {
+                return Math.sin(a);
+            }
+            if ("cos".equals(name)) {
+                return Math.cos(a);
+            }
+            if ("tan".equals(name)) {
+                return Math.tan(a);
+            }
+            if ("if".equals(name)) {
+                return a != 0.0 ? args[1].eval(rpm, speed) : args[2].eval(rpm, speed);
+            }
+            throw new IllegalStateException("Unknown function: " + name);
         }
 
         private double min(double first, double rpm, double speed) {
@@ -334,28 +431,41 @@ public final class Formula {
                         list.add(ternary());
                     } while (consume(','));
                     expect(')');
-                    args = list.toArray(Node[]::new);
+                    args = list.toArray(new Node[0]);
                 }
                 validateArity(name, args.length);
                 return new Call(name, args);
             }
-            return switch (name) {
-                case "rpm" -> new Var(0);
-                case "speed" -> new Var(1);
-                case "pi" -> new Const(Math.PI);
-                case "e" -> new Const(Math.E);
-                default -> throw error("Unknown variable '" + name + "'");
-            };
+            if ("rpm".equals(name)) {
+                return new Var(0);
+            }
+            if ("speed".equals(name)) {
+                return new Var(1);
+            }
+            if ("pi".equals(name)) {
+                return new Const(Math.PI);
+            }
+            if ("e".equals(name)) {
+                return new Const(Math.E);
+            }
+            throw error("Unknown variable '" + name + "'");
         }
 
         private static void validateArity(String name, int count) {
-            int expected = switch (name) {
-                case "abs", "sqrt", "sign", "floor", "ceil", "round", "log", "exp", "sin", "cos", "tan" -> 1;
-                case "pow" -> 2;
-                case "clamp", "if" -> 3;
-                case "min", "max" -> count >= 2 ? count : -1;
-                default -> -1;
-            };
+            int expected;
+            if ("abs".equals(name) || "sqrt".equals(name) || "sign".equals(name) || "floor".equals(name)
+                    || "ceil".equals(name) || "round".equals(name) || "log".equals(name) || "exp".equals(name)
+                    || "sin".equals(name) || "cos".equals(name) || "tan".equals(name)) {
+                expected = 1;
+            } else if ("pow".equals(name)) {
+                expected = 2;
+            } else if ("clamp".equals(name) || "if".equals(name)) {
+                expected = 3;
+            } else if ("min".equals(name) || "max".equals(name)) {
+                expected = count >= 2 ? count : -1;
+            } else {
+                expected = -1;
+            }
             if (expected == -1) {
                 throw new IllegalArgumentException("Unknown function '" + name + "' or wrong number of arguments");
             }

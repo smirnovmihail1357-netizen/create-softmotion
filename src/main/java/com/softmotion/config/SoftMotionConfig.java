@@ -1,18 +1,18 @@
 package com.softmotion.config;
 
 import com.softmotion.util.Formula;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.minecraftforge.common.ForgeConfigSpec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public final class SoftMotionConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger("softmotion");
+    private static final Logger LOGGER = LogManager.getLogger("softmotion");
     private static final Object COMPILE_LOCK = new Object();
 
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.DoubleValue VISUAL_SPEED_MULTIPLIER;
-    public static final ModConfigSpec.BooleanValue SLOW_BEARING_CONTRAPTIONS;
-    public static final ModConfigSpec.ConfigValue<String> VISUAL_SPEED_FORMULA;
+    public static final ForgeConfigSpec SPEC;
+    public static final ForgeConfigSpec.DoubleValue VISUAL_SPEED_MULTIPLIER;
+    public static final ForgeConfigSpec.BooleanValue SLOW_BEARING_CONTRAPTIONS;
+    public static final ForgeConfigSpec.ConfigValue<String> VISUAL_SPEED_FORMULA;
 
     private static volatile String compiledSource;
     private static volatile Formula compiledFormula;
@@ -27,7 +27,7 @@ public final class SoftMotionConfig {
 
     /** True when a non-empty formula is configured (even if it currently fails to parse). */
     public static boolean formulaActive() {
-        return !VISUAL_SPEED_FORMULA.get().isBlank();
+        return !VISUAL_SPEED_FORMULA.get().trim().isEmpty();
     }
 
     /**
@@ -46,7 +46,7 @@ public final class SoftMotionConfig {
             synchronized (COMPILE_LOCK) {
                 if (!source.equals(compiledSource)) {
                     Formula parsed = null;
-                    if (!source.isBlank()) {
+                    if (!source.trim().isEmpty()) {
                         try {
                             parsed = Formula.compile(source);
                         } catch (RuntimeException e) {
@@ -73,7 +73,7 @@ public final class SoftMotionConfig {
     }
 
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.push("client");
 

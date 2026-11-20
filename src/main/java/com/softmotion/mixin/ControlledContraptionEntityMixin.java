@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(targets = "com.simibubi.create.content.contraptions.ControlledContraptionEntity", remap = false)
+@Mixin(targets = "com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity", remap = false)
 public abstract class ControlledContraptionEntityMixin {
     private static final WeakHashMap<Object, VisualAngleState> SOFTMOTION$ENTITY_ANGLES = new WeakHashMap<>();
 

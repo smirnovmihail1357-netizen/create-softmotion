@@ -1,5 +1,6 @@
 .gradle/
 build/
+libs/
 libs-maven/
 run/
 out/
