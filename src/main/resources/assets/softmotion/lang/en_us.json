@@ -1,4 +1,5 @@
 {
   "softmotion.config.visualSpeedMultiplier": "Visual Speed Multiplier",
+  "softmotion.config.visualSpeedFormula": "Visual Speed Formula (rpm, speed; empty = use multiplier)",
   "softmotion.config.slowBearingContraptions": "Slow Bearing Contraptions"
 }

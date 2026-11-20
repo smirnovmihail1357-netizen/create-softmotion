@@ -1,4 +1,5 @@
 {
   "softmotion.config.visualSpeedMultiplier": "Множитель визуальной скорости",
+  "softmotion.config.visualSpeedFormula": "Формула визуальной скорости (rpm, speed; пусто = множитель)",
   "softmotion.config.slowBearingContraptions": "Замедлять конструкции на вращателе"
 }

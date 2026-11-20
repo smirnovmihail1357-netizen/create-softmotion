@@ -20,7 +20,7 @@ The mod applies client-side visual changes to rotating Create components and con
 * slows down other rotating components rendered through Create and Flywheel;
 * reduces the visual rotation speed of Mechanical Bearings;
 * can optionally slow down assembled contraptions attached to Mechanical Bearings;
-* lets you tune the visual rotation multiplier in the config.
+* lets you tune the visual rotation multiplier in the config, or define it with a formula that depends on the element's real speed.
 
 ### What it does not change
 
@@ -35,10 +35,17 @@ The multiplier only affects how movement is displayed on the client. Create mach
 
 | Option | Default | Meaning |
 |---|---|---|
-| `visualSpeedMultiplier` | `0.25` | `0.0` = visually frozen, `0.25` = four times slower, `1.0` = vanilla Create visuals |
+| `visualSpeedMultiplier` | `0.25` | `0.0` = visually frozen, `0.25` = four times slower, `1.0` = vanilla Create visuals. Used when the formula is empty or invalid |
+| `visualSpeedFormula` | `""` | optional formula evaluated per element; overrides the multiplier when non-empty |
 | `slowBearingContraptions` | `true` | also slow the assembled contraption entities attached to Mechanical Bearings |
 
-Any value between `0.0` and `1.0` can be used for fine tuning. The config screen opens from the mod list; if NeoForge does not provide its `ConfigurationScreen`, the TOML file still works.
+**Formula.** It returns a multiplier of the real speed, clamped to `0.0..1.0`, and is evaluated for each rotating element. Variables: `rpm` (real absolute speed in Create units) and `speed` (`rpm * 6`, Flywheel units). Operators: `+ - * / % ^`, comparisons, `&& || !`, `? :`. Functions: `abs`, `min`, `max`, `clamp`, `sqrt`, `sign`, `floor`, `ceil`, `round`, `pow`, `log`, `exp`, `sin`, `cos`, `tan`, `if`. Examples:
+
+* `min(1, 8 / (rpm + 0.001))` — faster machines are slowed down more;
+* `clamp(0.25 + rpm / 200, 0.1, 1)` — gentle speed-dependent slowdown;
+* `if(rpm > 100, 0.1, 0.5)` — two speed bands.
+
+An invalid formula is logged once and the plain multiplier is used. The config screen opens from the mod list; if NeoForge does not provide its `ConfigurationScreen`, the TOML file still works.
 
 Labels are localized in English and Russian.
 
@@ -66,7 +73,7 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 ### Source code and license
 
-[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, build with `./fetch-libs.sh` then `./gradlew build` (artifact `build/libs/Create-SoftMotion-1.0.0.jar`).
+[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, build with `./fetch-libs.sh` then `./gradlew build` (artifact `build/libs/Create-SoftMotion-1.1.0.jar`).
 
 ---
 
@@ -90,7 +97,7 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 * замедляет другие вращающиеся компоненты, отрисовываемые через Create и Flywheel;
 * уменьшает визуальную скорость вращения механических вращателей;
 * может опционально замедлять собранные конструкции, прикреплённые к механическим вращателям;
-* позволяет настраивать множитель визуальной скорости в конфиге.
+* позволяет настраивать множитель визуальной скорости в конфиге или задать его формулой, зависящей от реальной скорости элемента.
 
 ### Что мод не меняет
 
@@ -105,10 +112,17 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 | Опция | По умолчанию | Значение |
 |---|---|---|
-| `visualSpeedMultiplier` | `0.25` | `0.0` — визуальное вращение заморожено, `0.25` — в четыре раза медленнее, `1.0` — обычные визуальные скорости Create |
+| `visualSpeedMultiplier` | `0.25` | `0.0` — визуальное вращение заморожено, `0.25` — в четыре раза медленнее, `1.0` — обычные визуальные скорости Create. Используется, если формула пуста или некорректна |
+| `visualSpeedFormula` | `""` | необязательная формула, вычисляемая для каждого элемента; если не пуста, перекрывает множитель |
 | `slowBearingContraptions` | `true` | замедлять также сущности конструкций на механическом вращателе |
 
-Можно использовать любое промежуточное значение от `0.0` до `1.0`. Экран настроек открывается из списка модов; если NeoForge не предоставляет `ConfigurationScreen`, работает обычный TOML-файл.
+**Формула** возвращает множитель реальной скорости (`0.0..1.0`) и вычисляется отдельно для каждого вращающегося элемента. Переменные: `rpm` (реальная абсолютная скорость в единицах Create) и `speed` (`rpm * 6`, единицы Flywheel). Операторы: `+ - * / % ^`, сравнения, `&& || !`, `? :`. Функции: `abs`, `min`, `max`, `clamp`, `sqrt`, `sign`, `floor`, `ceil`, `round`, `pow`, `log`, `exp`, `sin`, `cos`, `tan`, `if`. Примеры:
+
+* `min(1, 8 / (rpm + 0.001))` — быстрые механизмы замедляются сильнее;
+* `clamp(0.25 + rpm / 200, 0.1, 1)` — плавная зависимость от скорости;
+* `if(rpm > 100, 0.1, 0.5)` — два диапазона скоростей.
+
+Ошибочная формула один раз пишется в лог, после чего используется обычный множитель. Экран настроек открывается из списка модов; если NeoForge не предоставляет `ConfigurationScreen`, работает обычный TOML-файл.
 
 Подписи локализованы на английском и русском.
 
@@ -136,4 +150,4 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 ### Исходники и лицензия
 
-[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, сборка: `./fetch-libs.sh`, затем `./gradlew build` (результат — `build/libs/Create-SoftMotion-1.0.0.jar`).
+[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, сборка: `./fetch-libs.sh`, затем `./gradlew build` (результат — `build/libs/Create-SoftMotion-1.1.0.jar`).

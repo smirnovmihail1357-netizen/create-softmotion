@@ -14,27 +14,38 @@ public abstract class ControlledContraptionEntityMixin {
 
     @ModifyVariable(method = "setAngle", at = @At("HEAD"), argsOnly = true, ordinal = 0, require = 0)
     private float softmotion$scaleContraptionEntityAngle(float realAngleRaw) {
-        if (!SoftMotionConfig.slowBearingContraptions()) {
+        if (!SoftMotionConfig.slowBearingContraptions()
+                || (!SoftMotionConfig.formulaActive() && SoftMotionConfig.visualMultiplier() >= 0.9999F)) {
             SOFTMOTION$ENTITY_ANGLES.remove(this);
             return realAngleRaw;
         }
 
-        float multiplier = SoftMotionConfig.visualMultiplier();
-        if (multiplier >= 0.9999f) {
-            SOFTMOTION$ENTITY_ANGLES.remove(this);
-            return realAngleRaw;
-        }
-
+        float baseMultiplier = SoftMotionConfig.visualMultiplier();
         float realAngle = SoftMotionAngles.normalize(realAngleRaw);
+        long now = System.nanoTime();
 
         VisualAngleState state = SOFTMOTION$ENTITY_ANGLES.get(this);
         if (state == null) {
-            state = new VisualAngleState(realAngle, realAngle);
+            state = new VisualAngleState(realAngle, realAngle, baseMultiplier, now);
             SOFTMOTION$ENTITY_ANGLES.put(this, state);
             return realAngleRaw;
         }
 
+        // A config change must not leave the visual angle permanently behind the real one.
+        if (state.lastBaseMultiplier != baseMultiplier) {
+            state.visualAngle = realAngle;
+            state.lastBaseMultiplier = baseMultiplier;
+        }
+
         float delta = SoftMotionAngles.shortestDelta(state.lastRealAngle, realAngle);
+        float seconds = (now - state.lastTimeNanos) / 1_000_000_000.0F;
+        state.lastTimeNanos = now;
+
+        // The entity does not expose its bearing, so estimate the real speed from the angle
+        // change over wall-clock time. Flywheel units = degrees per second = rpm * 6.
+        float rpm = seconds > 0.0F ? Math.min(100_000.0F, Math.abs(delta) / (6.0F * seconds)) : 0.0F;
+        float multiplier = SoftMotionConfig.multiplier(rpm);
+
         state.visualAngle = SoftMotionAngles.normalize(state.visualAngle + delta * multiplier);
         state.lastRealAngle = realAngle;
 
