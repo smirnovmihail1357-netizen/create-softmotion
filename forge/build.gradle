@@ -41,6 +41,10 @@ dependencies {
     modImplementation "com.tterrag.registrate:Registrate:${rootProject.registrate_version}"
     modCompileOnly "dev.engine-room.flywheel:flywheel-forge-api-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
     modRuntimeOnly "dev.engine-room.flywheel:flywheel-forge-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
+    // The slim Create artifact drops the jarjar'd mixinextras that Create's mixins need at
+    // runtime. Plain runtimeOnly (NOT modRuntimeOnly): its ModLauncher service must be
+    // visible on the classpath, not be discovered as a classpath mod.
+    runtimeOnly "io.github.llamalad7:mixinextras-forge:${rootProject.mixin_extras_version}"
 }
 
 processResources {
