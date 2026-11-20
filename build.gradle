@@ -28,6 +28,15 @@ allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
 
+    java {
+        // MC 1.18/1.19 dev runs must launch on Java 17: the mixin/ASM shipped with
+        // Forge 40/43 cannot parse newer JDK class files (ClassMetadataNotFound on
+        // java.lang.System when the game JVM is 21). Foojay auto-provisions 17.
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.release = 17
@@ -35,12 +44,12 @@ allprojects {
 
     repositories {
         mavenCentral()
-        // Create (forge builds), Ponder, Flywheel
-        maven { url = 'https://maven.createmod.net' }
-        // Registrate
-        maven { url = 'https://maven.ithundxr.dev/mirror' }
-        // create-fabric is not published to a public maven; resolve it through Modrinth.
+        // Create 0.5.1 for MC 1.18/1.19 is not on maven.createmod.net; the forge
+        // jar and create-fabric are resolved through the Modrinth maven.
         maven { url = 'https://api.modrinth.com/maven' }
+        // flywheel-forge + Registrate (jarjar'd inside the forge Create jar) and
+        // flywheel-fabric (JiJ'd inside create-fabric) extracted by fetch-libs.sh.
+        maven { url = uri(rootProject.file('libs-maven')) }
         // Fabric loader + api (loom adds its own defaults as well)
         maven { url = 'https://maven.fabricmc.net/' }
     }
