@@ -73,7 +73,7 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 ### Source code and license
 
-[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, build with `./fetch-libs.sh` then `./gradlew build` (artifact `build/libs/Create-SoftMotion-1.1.0.jar`).
+[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, build with `./fetch-libs.sh` then `./gradlew build` (artifact `build/libs/Create-SoftMotion-1.1.1.jar`).
 
 ---
 
@@ -150,4 +150,4 @@ Compatibility with other Minecraft or Create versions is not guaranteed.
 
 ### Исходники и лицензия
 
-[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, сборка: `./fetch-libs.sh`, затем `./gradlew build` (результат — `build/libs/Create-SoftMotion-1.1.0.jar`).
+[https://github.com/smirnovmihail1357-netizen/create-softmotion](https://github.com/smirnovmihail1357-netizen/create-softmotion) — MIT, сборка: `./fetch-libs.sh`, затем `./gradlew build` (результат — `build/libs/Create-SoftMotion-1.1.1.jar`).

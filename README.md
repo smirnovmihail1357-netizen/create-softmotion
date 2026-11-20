@@ -68,7 +68,7 @@ The jars are taken from the Modrinth CDN because `maven.createmod.net` currently
 certificate; they are the same official Create 6.0.10 release files, including Flywheel.
 
 ```bash
-./gradlew build      # artifact: build/libs/Create-SoftMotion-1.1.0.jar
+./gradlew build      # artifact: build/libs/Create-SoftMotion-1.1.1.jar
 ./gradlew runClient  # dev client with Create 6.0.10 preinstalled
 ```
 
@@ -104,9 +104,10 @@ Visual angle states are kept in `WeakHashMap`s, so they do not leak block entiti
 - The rendered angle follows the real angle by shortest-delta integration. If a real angle changes by
   more than 180° between two rendered calls (extremely high RPM with a very low frame rate), the
   integration can misinterpret it as rotation in the opposite direction.
-- For assembled contraption entities Create does not expose the driving speed, so the `rpm` variable is
-  estimated from the angle change over wall-clock time; formula results for those entities are
-  approximate.
+- For bearings and assembled contraption entities Create does not expose the driving speed to the
+  mixins, so the `rpm` variable is estimated from the real-angle change over wall-clock time (with
+  smoothing); formula results for those elements are approximate. Shafts and other Flywheel rotating
+  instances report the exact speed.
 - Results are clamped to `0.0..1.0`: the formula can only slow visuals, never speed them past vanilla.
 
 ## Modrinth

@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="softmotion"
-version="1.1.0"
+version="1.1.1"
 displayName="Create: SoftMotion"
 authors="WarDreg"
 description="""Accessibility addon for Create designed for players with visual hypersensitivity.

@@ -42,9 +42,9 @@ public abstract class ControlledContraptionEntityMixin {
         state.lastTimeNanos = now;
 
         // The entity does not expose its bearing, so estimate the real speed from the angle
-        // change over wall-clock time. Flywheel units = degrees per second = rpm * 6.
-        float rpm = seconds > 0.0F ? Math.min(100_000.0F, Math.abs(delta) / (6.0F * seconds)) : 0.0F;
-        float multiplier = SoftMotionConfig.multiplier(rpm);
+        // change over wall-clock time.
+        state.lastRpm = SoftMotionAngles.estimateRpm(delta, seconds, state.lastRpm);
+        float multiplier = SoftMotionConfig.multiplier(state.lastRpm);
 
         state.visualAngle = SoftMotionAngles.normalize(state.visualAngle + delta * multiplier);
         state.lastRealAngle = realAngle;
