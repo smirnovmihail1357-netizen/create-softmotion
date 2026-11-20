@@ -1,0 +1,55 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+base { archivesName = 'create-softmotion-fabric' }
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+
+    // create-fabric bundles the rest of its dependencies (flywheel, ponder, registrate,
+    // porting_lib, forgeconfigapiport, milk, reach) inside META-INF/jars, so the dev
+    // runtime needs nothing beyond fabric-api.
+    modImplementation "maven.modrinth:create-fabric:${rootProject.create_fabric_version}"
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    shadowCommon(project(path: ':common', configuration: 'transformProductionFabric')) { transitive = false }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
+    }
+}
+
+tasks.jar {
+    archiveClassifier = 'dev'
+}
+
+shadowJar {
+    archiveClassifier = 'dev-shadow'
+    configurations = [project.configurations.shadowCommon]
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+}
+
+remapJar {
+    inputFile.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+    from rootProject.file('LICENSE')
+}

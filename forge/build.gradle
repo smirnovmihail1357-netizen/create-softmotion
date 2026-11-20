@@ -1,0 +1,73 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+base { archivesName = 'create-softmotion-forge' }
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+loom {
+    forge {
+        mixinConfig 'softmotion.mixins.json'
+    }
+    runs.configureEach {
+        // Create ships its mixin config through jar metadata for production; the
+        // architectury-loom forge dev runtime needs it spelled out explicitly.
+        programArg '-mixin.config=create.mixins.json'
+    }
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+dependencies {
+    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    shadowCommon(project(path: ':common', configuration: 'transformProductionForge')) { transitive = false }
+
+    // slim = the createmod maven build without the jarjar'd libraries; the rest of
+    // the Create stack is provided explicitly below (same wiring as other Create addons).
+    modImplementation("com.simibubi.create:create-${rootProject.minecraft_version}:${rootProject.create_forge_version}:slim") { transitive = false }
+    modImplementation "net.createmod.ponder:Ponder-Forge-${rootProject.minecraft_version}:${rootProject.ponder_version}"
+    modImplementation "com.tterrag.registrate:Registrate:${rootProject.registrate_version}"
+    modCompileOnly "dev.engine-room.flywheel:flywheel-forge-api-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
+    modRuntimeOnly "dev.engine-room.flywheel:flywheel-forge-${rootProject.minecraft_version}:${rootProject.flywheel_version}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/mods.toml') {
+        expand 'version': project.version
+    }
+}
+
+tasks.jar {
+    archiveClassifier = 'dev'
+}
+
+shadowJar {
+    archiveClassifier = 'dev-shadow'
+    configurations = [project.configurations.shadowCommon]
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+    // Forge 1.20.1 does not read mixin configs from mods.toml; this manifest
+    // attribute is how Create itself registers create.mixins.json in production.
+    manifest {
+        attributes 'MixinConfigs': 'softmotion.mixins.json'
+    }
+}
+
+remapJar {
+    inputFile.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+    from rootProject.file('LICENSE')
+}

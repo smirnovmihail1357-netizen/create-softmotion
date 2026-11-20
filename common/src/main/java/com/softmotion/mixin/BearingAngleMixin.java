@@ -1,5 +1,6 @@
 package com.softmotion.mixin;
 
+import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
 import com.softmotion.config.SoftMotionConfig;
 import com.softmotion.util.SoftMotionAngles;
 import com.softmotion.util.VisualAngleState;
@@ -9,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(targets = "com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity", remap = false)
+@Mixin(value = MechanicalBearingBlockEntity.class, remap = false)
 public abstract class BearingAngleMixin {
     private static final WeakHashMap<Object, VisualAngleState> SOFTMOTION$ANGLES = new WeakHashMap<>();
 

@@ -1,5 +1,6 @@
 package com.softmotion.mixin;
 
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
 import com.softmotion.config.SoftMotionConfig;
 import com.softmotion.util.SoftMotionAngles;
 import com.softmotion.util.VisualAngleState;
@@ -8,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(targets = "com.simibubi.create.content.contraptions.ControlledContraptionEntity", remap = false)
+@Mixin(value = ControlledContraptionEntity.class, remap = false)
 public abstract class ControlledContraptionEntityMixin {
     private static final WeakHashMap<Object, VisualAngleState> SOFTMOTION$ENTITY_ANGLES = new WeakHashMap<>();
 

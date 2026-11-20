@@ -1,0 +1,15 @@
+architectury {
+    common 'fabric', 'forge'
+}
+
+dependencies {
+    // Only used for loader annotations in common; no fabric classes are used.
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+
+    // create-fabric keeps the same class paths as the forge build, so the common
+    // code and mixins compile against it and apply to both platforms.
+    modCompileOnly "maven.modrinth:create-fabric:${rootProject.create_fabric_version}"
+
+    // RotatingInstance extends flywheel classes -> needed on the compile classpath.
+    modCompileOnly "dev.engine-room.flywheel:flywheel-fabric-1.20.1:${rootProject.flywheel_fabric_version}"
+}

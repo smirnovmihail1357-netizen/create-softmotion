@@ -3,7 +3,7 @@
 **[English](README.md)** | **Русский**
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-createsoftmotion-blue)](https://modrinth.com/mod/createsoftmotion)
-![MC](https://img.shields.io/badge/Minecraft-1.21.1-green) ![loader](https://img.shields.io/badge/NeoForge-21.1.230%2B-orange)
+![MC](https://img.shields.io/badge/Minecraft-1.20.1-green) ![loader](https://img.shields.io/badge/Forge%2047.1%2B%20%7C%20NeoForge%2020.1%20%7C%20Fabric%200.17%2B-orange)
 
 Клиентский аддон доступности для [Create](https://modrinth.com/mod/create): замедляет **визуальное**
 вращение механизмов и конструкций Create для игроков со зрительной гиперчувствительностью.
@@ -23,7 +23,9 @@
 | `slowBearingContraptions` | `true` | замедлять также сущности конструкций, собранных на механическом вращателе |
 
 Экран настроек открывается из списка модов (через `IConfigScreenFactory` NeoForge). Если NeoForge не
-предоставляет `ConfigurationScreen`, мод продолжает работать с TOML-файлом.
+предоставляет `ConfigurationScreen`, мод продолжает работать с TOML-файлом. В Forge/Fabric-сборках этой
+ветки универсального экрана настроек нет — настройки меняются в TOML-файле (на Fabric он создаётся
+с значениями по умолчанию при первом запуске).
 
 ### Синтаксис формулы
 
@@ -56,30 +58,32 @@ visualSpeedFormula = "if(rpm > 100, 0.1, 0.5)"          # два диапазо�
 
 ## Сборка
 
-Нужен JDK 21+ (Gradle сам подтянет toolchain) и доступ в интернет при первой сборке — скачиваются
-ассеты NeoForge userdev.
+Ветка нацелена на Minecraft 1.20.1 и собирается мульти-модульным туслчейном
+[Architectury](https://modrinth.com/mod/architectury-api) (`architectury-plugin` + `dev.architectury.loom`):
+`common` (миксины, математика, фасад конфига), `forge` (Forge 47.1+; тот же джарник работает на NeoForge
+20.1 — так же, как сам Create для 1.20.1) и `fabric` (Fabric Loader 0.17+).
 
-Сначала скачайте dev-джары Create в локальное зеркало `libs-maven/`:
-
-```bash
-./fetch-libs.sh
-```
-
-Джары берутся с CDN Modrinth, потому что `maven.createmod.net` сейчас отдаёт просроченный TLS-сертификат;
-это те же официальные файлы Create 6.0.10, включая Flywheel.
+Для запуска Gradle нужен JDK 17–21 (wrapper — Gradle 8.12, он не принимает более новые JVM) и доступ в
+интернет при первой сборке (loom, ассеты Forge userdev, dev-артефакты Create с `maven.createmod.net`).
 
 ```bash
-./gradlew build      # результат: build/libs/Create-SoftMotion-1.1.1.jar
-./gradlew runClient  # dev-клиент с предустановленным Create 6.0.10
+./gradlew build
+# forge:  forge/build/libs/create-softmotion-forge-1.1.1+1.20.1.jar      (forge + neoforge)
+# fabric: fabric/build/libs/create-softmotion-fabric-1.1.1+1.20.1.jar    (fabric + quilt)
+./gradlew :forge:runClient   # dev-клиент с Create 6.0.8
+./gradlew :fabric:runClient  # dev-клиент с create-fabric 6.0.8.1
 ```
+
+Ветка main — NeoForge-сборка для 1.21.1; остальные версии Minecraft живут в отдельных ветках
+(`mc1.20.1`, `mc1.19.2`, `mc1.18.2`, `mc1.16.5`).
 
 ## Совместимость
 
 | | |
 |---|---|
-| Minecraft | 1.21.1 (`[1.21.1, 1.21.2)`) |
-| Лоадер | NeoForge 21.1.230+ |
-| Create | 6.0.10+ (обязателен, объявлен как `side = CLIENT`) |
+| Minecraft | 1.20.1 |
+| Лоадер | Forge 47.1.3+ (тот же джарник работает на NeoForge 20.1), Fabric Loader 0.14+ / quilt |
+| Create | 6.0.7+ на Forge/NeoForge, create-fabric 6.0.7+ на Fabric (обязателен, клиентская сторона) |
 | Сторона | только клиент (`client_side: required`, `server_side: unsupported`) |
 
 Все инъекции идут с `require = 0`, а в конфиге миксинов стоит `defaultRequire = 0`: если будущая сборка

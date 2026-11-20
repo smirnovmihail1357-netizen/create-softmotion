@@ -3,7 +3,7 @@
 **English** | **[Русский](README.ru.md)**
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-createsoftmotion-blue)](https://modrinth.com/mod/createsoftmotion)
-![MC](https://img.shields.io/badge/Minecraft-1.21.1-green) ![loader](https://img.shields.io/badge/NeoForge-21.1.230%2B-orange)
+![MC](https://img.shields.io/badge/Minecraft-1.20.1-green) ![loader](https://img.shields.io/badge/Forge%2047.1%2B%20%7C%20NeoForge%2020.1%20%7C%20Fabric%200.17%2B-orange)
 
 Client-side accessibility addon for [Create](https://modrinth.com/mod/create) that slows down the
 **visual** rotation of Create machinery and contraptions, for players with visual hypersensitivity.
@@ -23,7 +23,9 @@ Client-side accessibility addon for [Create](https://modrinth.com/mod/create) th
 | `slowBearingContraptions` | `true` | also slow assembled contraption entities attached to Mechanical Bearings |
 
 A native config screen is registered through NeoForge's `IConfigScreenFactory` (opened from the mod list).
-If NeoForge does not provide `ConfigurationScreen`, the mod still works through the TOML file.
+If NeoForge does not provide `ConfigurationScreen`, the mod still works through the TOML file. On the
+Forge/Fabric builds of this branch there is no generic config screen API, so the TOML file is the way
+to change settings (on Fabric it is written with defaults on first launch).
 
 ### Formula syntax
 
@@ -55,30 +57,33 @@ The formula is compiled once per config change, not on every frame.
 
 ## Build
 
-Requires JDK 21+ (Gradle provisions a toolchain automatically) and internet access on the first build
-(downloads NeoForge userdev assets).
+This branch targets Minecraft 1.20.1 with a multi-module [Architectury](https://modrinth.com/mod/architectury-api)
+toolchain (`architectury-plugin` + `dev.architectury.loom`): `common` (mixins + math + config facade),
+`forge` (Forge 47.1+, the same jar runs on NeoForge 20.1 — exactly like Create's own 1.20.1 build) and
+`fabric` (Fabric Loader 0.17+).
 
-First, fetch the Create dev jars into the local mirror `libs-maven/`:
-
-```bash
-./fetch-libs.sh
-```
-
-The jars are taken from the Modrinth CDN because `maven.createmod.net` currently serves an expired TLS
-certificate; they are the same official Create 6.0.10 release files, including Flywheel.
+Requires a JDK 17–21 for the Gradle launcher (the wrapper is Gradle 8.12, which refuses newer launchers)
+and internet access on the first build (downloads loom + Forge userdev assets + Create dev artifacts from
+`maven.createmod.net`).
 
 ```bash
-./gradlew build      # artifact: build/libs/Create-SoftMotion-1.1.1.jar
-./gradlew runClient  # dev client with Create 6.0.10 preinstalled
+./gradlew build
+# forge artifact:  forge/build/libs/create-softmotion-forge-1.1.1+1.20.1.jar      (forge + neoforge)
+# fabric artifact: fabric/build/libs/create-softmotion-fabric-1.1.1+1.20.1.jar    (fabric + quilt)
+./gradlew :forge:runClient   # dev client with Create 6.0.8 preinstalled
+./gradlew :fabric:runClient  # dev client with create-fabric 6.0.8.1 preinstalled
 ```
+
+The main branch holds the NeoForge 1.21.1 build; other Minecraft versions live in per-version branches
+(`mc1.20.1`, `mc1.19.2`, `mc1.18.2`, `mc1.16.5`).
 
 ## Compatibility
 
 | | |
 |---|---|
-| Minecraft | 1.21.1 (`[1.21.1, 1.21.2)`) |
-| Loader | NeoForge 21.1.230+ |
-| Create | 6.0.10+ (required, declared with `side = CLIENT`) |
+| Minecraft | 1.20.1 |
+| Loader | Forge 47.1.3+ (the same jar runs on NeoForge 20.1), Fabric Loader 0.14+ / quilt |
+| Create | 6.0.7+ on Forge/NeoForge, create-fabric 6.0.7+ on Fabric (required, client side) |
 | Side | client only (`client_side: required`, `server_side: unsupported`) |
 
 All injections are `require = 0` and the mixin config sets `defaultRequire = 0`, so if a future Create

@@ -1,55 +1,47 @@
 plugins {
-    id 'net.neoforged.moddev' version '2.0.148'
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+    id 'dev.architectury.loom' version '1.11.+' apply false
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
-version = '1.1.1'
-group = 'com.softmotion'
-base.archivesName = 'Create-SoftMotion'
+architectury {
+    minecraft = rootProject.minecraft_version
+}
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+subprojects {
+    apply plugin: 'dev.architectury.loom'
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        mappings loom.officialMojangMappings()
     }
 }
 
-neoForge {
-    version = '21.1.252'
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'architectury-plugin'
 
-    runs {
-        client {
-            client()
-        }
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 17
     }
 
-    mods {
-        softmotion {
-            sourceSet sourceSets.main
-        }
+    repositories {
+        mavenCentral()
+        // Create (forge builds), Ponder, Flywheel
+        maven { url = 'https://maven.createmod.net' }
+        // Registrate
+        maven { url = 'https://maven.ithundxr.dev/mirror' }
+        // create-fabric is not published to a public maven; resolve it through Modrinth.
+        maven { url = 'https://api.modrinth.com/maven' }
+        // Fabric loader + api (loom adds its own defaults as well)
+        maven { url = 'https://maven.fabricmc.net/' }
     }
-}
-
-repositories {
-    // Local mirror of Modrinth-hosted jars (Modrinth maven coordinates), used because
-    // maven.createmod.net currently serves an expired TLS certificate (Let's Encrypt YR1).
-    // Fetch with: ./fetch-libs.sh
-    maven { url = uri(layout.projectDirectory.dir('libs-maven')) }
-    maven { url = 'https://maven.createmod.net' } // Create, Ponder, Flywheel
-    maven { url = 'https://maven.ithundxr.dev/snapshots' } // Registrate
-    maven { url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/' } // ponder config api
-}
-
-dependencies {
-    // Create 6.0.10 for mc1.21.1 (Modrinth release; bundles flywheel/ponder/Registrate
-    // in META-INF/jarjar, so they load in the dev client without extra dependencies).
-    implementation('com.simibubi.create:create-1.21.1:6.0.10') {
-        transitive = false
-    }
-    // RotatingInstance extends flywheel lib classes -> needed on the compile classpath.
-    compileOnly('dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.6') {
-        transitive = false
-    }
-}
-
-jar {
-    from 'LICENSE'
 }
